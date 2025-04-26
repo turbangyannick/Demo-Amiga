@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Demo Scene - 6 Lines</title>
+
+    <!-- Police pixel art -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+    <!-- Three.js pour la 3D -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.156.1/build/three.min.js"></script>
+
+    <style>
+        body {
+            background: black;
+            overflow: hidden;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        #start-button {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 20px;
+            padding: 10px 20px;
+            background-color: cyan;
+            border: none;
+            cursor: pointer;
+            border-radius: 10px;
+            z-index: 10;
+            margin-bottom: 20px;
+        }
+
+        .scrolling-text {
+            position: absolute;
+            white-space: nowrap;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 24px;
+            visibility: hidden;
+            animation: scroll 20s linear infinite;
+            transform: translateY(-50%);
+            z-index: 10;
+        }
+
+        @keyframes scroll {
+            0% { left: 100%; }
+            100% { left: -100%; }
+        }
+
+        #cube-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Couleurs différentes pour chaque ligne */
+        #line1 { color: #FFA500; top: 20%; }
+        #line2 { color: #FF8C00; top: 28%; }
+        #line3 { color: #FF7F50; top: 36%; }
+        #line4 { color: #FF6347; top: 44%; }
+        #line5 { color: #FF4500; top: 52%; }
+        #line6 { color: #DA70D6; top: 60%; }
+        #line7 { color: #BA55D3; top: 68%; }
+        #line8 { color: #9932CC; top: 76%; }
+        #line9 { color: #8A2BE2; top: 84%; }
+        #line10 { color: #4B0082; top: 92%; }
+
+        .scrolling-text span {
+            display: inline-block;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- Bouton Start -->
+<button id="start-button">Start Demo</button>
+
+<!-- 6 lignes de texte -->
+<div id="line1" class="scrolling-text">BIENVENUE DANS LA DEMO AMIGA STYLE!.......</div>
+<div id="line2" class="scrolling-text">.BIENVENUE DANS LA DEMO AMIGA STYLE!.....</div>
+<div id="line3" class="scrolling-text">..BIENVENUE DANS LA DEMO AMIGA STYLE!...</div>
+<div id="line4" class="scrolling-text">...BIENVENUE DANS LA DEMO AMIGA STYLE!.</div>
+<div id="line5" class="scrolling-text">....BIENVENUE DANS LA DEMO AMIGA STYLE!.</div>
+<div id="line6" class="scrolling-text">.....BIENVENUE DANS LA DEMO AMIGA STYLE!..</div>
+<div id="line7" class="scrolling-text">....BIENVENUE DANS LA DEMO AMIGA STYLE!....</div>
+<div id="line8" class="scrolling-text">...BIENVENUE DANS LA DEMO AMIGA STYLE!......</div>
+<div id="line9" class="scrolling-text">..BIENVENUE DANS LA DEMO AMIGA STYLE!........</div>
+<div id="line10" class="scrolling-text">.BIENVENUE DANS LA DEMO AMIGA STYLE!..........</div>
+
+<!-- Conteneur 3D -->
+<div id="cube-container"></div>
+
+<!-- Musique -->
+<audio id="demo-music" loop>
+    <source src="http://soundimage.org/wp-content/uploads/2017/05/Funky-Chiptune.mp3" type="audio/mpeg">
+    Votre navigateur ne supporte pas l'élément audio.
+</audio>
+
+<script>
+// Boutons et éléments
+const startButton = document.getElementById('start-button');
+const scrollingLines = document.querySelectorAll('.scrolling-text');
+const demoMusic = document.getElementById('demo-music');
+
+// Découper chaque ligne en spans
+function splitAllTexts() {
+    scrollingLines.forEach(line => {
+        const text = line.innerText;
+        line.innerHTML = '';
+        for (let i = 0; i < text.length; i++) {
+            const span = document.createElement('span');
+            if (text[i] === ' ') {
+                span.innerHTML = '&nbsp;';
+            } else {
+                span.textContent = text[i];
+            }
+            line.appendChild(span);
+        }
+    });
+}
+
+// Animation vague + zoom sur chaque lettre
+let startTime = null;
+function animateLetters(timestamp) {
+    if (!startTime) startTime = timestamp;
+    const elapsed = timestamp - startTime;
+
+    scrollingLines.forEach((line, lineIndex) => {
+        const spans = line.querySelectorAll('span');
+
+        spans.forEach((span, letterIndex) => {
+            const amplitude = 20; // hauteur vague
+            const frequency = 0.002; // vitesse vague
+            const zoomAmplitude = 0.3; // taille max
+            const zoomSpeed = 0.004; // vitesse zoom
+            const phase = letterIndex * 0.3 + lineIndex; // décalage entre lignes
+
+            const offsetY = Math.sin(elapsed * frequency + phase) * amplitude;
+            const scale = 1 + Math.sin(elapsed * zoomSpeed + phase) * zoomAmplitude;
+
+            span.style.transform = `translateY(${offsetY}px) scale(${scale})`;
+        });
+    });
+
+    requestAnimationFrame(animateLetters);
+}
+
+// Lancer tout au clic
+startButton.addEventListener('click', () => {
+    demoMusic.play();
+    scrollingLines.forEach(line => line.style.visibility = 'visible');
+    startButton.style.display = 'none';
+    splitAllTexts();
+    requestAnimationFrame(animateLetters);
+});
+
+// --- Cube 3D Three.js
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({ alpha: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.getElementById('cube-container').appendChild(renderer.domElement);
+
+// Lumière
+const light = new THREE.PointLight(0xffffff, 1);
+light.position.set(10, 10, 10);
+scene.add(light);
+
+// Cube de sphères
+const sphereMaterial = new THREE.MeshPhongMaterial({ color: 0x00ffff });
+const lineMaterial = new THREE.LineBasicMaterial({ color: 0x00ffff });
+
+const cubeSize = 2;
+const positions = [
+    [1, 1, 1],
+    [1, 1, -1],
+    [1, -1, 1],
+    [1, -1, -1],
+    [-1, 1, 1],
+    [-1, 1, -1],
+    [-1, -1, 1],
+    [-1, -1, -1]
+];
+
+const group = new THREE.Group();
+positions.forEach(pos => {
+    const sphere = new THREE.Mesh(new THREE.SphereGeometry(0.2, 16, 16), sphereMaterial);
+    sphere.position.set(pos[0] * cubeSize, pos[1] * cubeSize, pos[2] * cubeSize);
+    group.add(sphere);
+});
+
+// Relier les sphères
+for (let i = 0; i < positions.length; i++) {
+    for (let j = i + 1; j < positions.length; j++) {
+        const posA = new THREE.Vector3(...positions[i]).multiplyScalar(cubeSize);
+        const posB = new THREE.Vector3(...positions[j]).multiplyScalar(cubeSize);
+        const diff = posA.clone().sub(posB).toArray().map(Math.abs);
+        const count = diff.filter(x => x === cubeSize * 2).length;
+        if (count === 1) {
+            const geometry = new THREE.BufferGeometry().setFromPoints([posA, posB]);
+            const line = new THREE.Line(geometry, lineMaterial);
+            group.add(line);
+        }
+    }
+}
+
+scene.add(group);
+camera.position.z = 10;
+
+// --- Cube 3D Three.js
+// ... (tout ton code de création de scène, group, etc.)
+
+let angle = 0; 
+let scaleAngle = 0; 
+let cubeAnimationStarted = false; // Nouveau : contrôle du démarrage
+
+function animateCube() {
+    if (cubeAnimationStarted) { // On anime que si démarré
+        // Rotation sur lui-même
+        group.rotation.x += 0.01;
+        group.rotation.y += 0.01;
+
+        // Mouvement circulaire
+        angle += 0.01; 
+        const radius = 2; 
+        group.position.x = Math.cos(angle) * radius;
+        group.position.y = Math.sin(angle) * radius;
+
+        // Effet de pulsation
+        scaleAngle += 0.05;
+        const scale = 1 + 0.3 * Math.sin(scaleAngle);
+        group.scale.set(scale, scale, scale);
+    }
+
+    renderer.render(scene, camera);
+    requestAnimationFrame(animateCube);
+}
+
+// Démarre l'animation boucle dès le chargement mais sans bouger le cube
+animateCube();
+
+// Ensuite au clic sur Start :
+startButton.addEventListener('click', () => {
+    demoMusic.play();
+    scrollingLines.forEach(line => line.style.visibility = 'visible');
+    startButton.style.display = 'none';
+    splitAllTexts();
+    requestAnimationFrame(animateLetters);
+
+    // C'est ici qu'on démarre le mouvement du cube !
+    cubeAnimationStarted = true;
+});
+
+
+
+</script>
+
+</body>
+</html>
