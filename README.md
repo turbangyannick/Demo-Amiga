@@ -1,4 +1,4 @@
 # Demo-Amiga
-<a href="https://<votre-nom-utilisateur>.github.io/<nom-du-repository>/votre-page.html">Cliquez ici pour accéder à la page</a>
+<a href="https://github.com/turbangyannick/Demo-Amiga/blob/main/demo.html">Cliquez ici pour accéder à la page</a>
 Demo Amiga
 ![Demo](Demo.png)
